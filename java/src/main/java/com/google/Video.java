@@ -46,4 +46,9 @@ class Video implements Comparable<Video>{
     public String getCurrentState(){
        return this.currentState;
     }
+    
+    public String toString(){
+        return "title "+title+", video_id:" +videoId;
+      
+    }
 }

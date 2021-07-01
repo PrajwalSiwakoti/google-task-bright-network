@@ -1,12 +1,16 @@
 package com.google;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
+import java.util.Scanner;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 public class VideoPlayer {
 
@@ -154,8 +158,8 @@ public class VideoPlayer {
             System.out.println("Please provide playlistname");
             return null;
         } else {
-            playlistName =playlistName.toLowerCase();
-            
+            playlistName = playlistName.toLowerCase();
+
             playlistName.replaceAll("\\s+", "_");
             // videoPlayLists.put("test", new VideoPlaylist("test"));
             //videoPlayLists.put("test1", new VideoPlaylist("test1"));
@@ -164,12 +168,12 @@ public class VideoPlayer {
             //videoPlayLists.forEach((key,value) -> System.out.println(key + " = " + value.toString()));
             for (Map.Entry<String, VideoPlaylist> entry : this.videoPlayLists.entrySet()) {
                 // System.out.println(entry.getKey().toLowerCase() + " " + playlistName.toLowerCase());
-                 String key =entry.getKey().toLowerCase();
-                if (key ==  playlistName) {
+                String key = entry.getKey().toLowerCase();
+                if (key == playlistName) {
                     System.out.println("Cannot create playlist: A playlist with the same name already exists");
-                    playlistName=null;
+                    playlistName = null;
                     break;
-                
+
                 }
             }
             return playlistName;
@@ -233,9 +237,9 @@ public class VideoPlayer {
     }
 
     public void showPlaylist(String playlistName) {
-        
-      // createPlaylist("my_playlist");
-  // addVideoToPlaylist("my_playlist", "amazing_cats_video_id");
+
+        // createPlaylist("my_playlist");
+        // addVideoToPlaylist("my_playlist", "amazing_cats_video_id");
         VideoPlaylist playlist = getVideoPlaylist(playlistName);
         if (playlist == null) {
             System.out.println("Cannot show playlist " + playlistName + ": Playlist does not exist");
@@ -271,13 +275,13 @@ public class VideoPlayer {
             System.out.println("Cannot remove video from " + playlistName + ": Video is not in playlist");
             return;
         }
-        
+
         playlist.removeVideo(video);
-        System.out.println("Removed video from "+playlist.getName()+": "+video.getTitle());
+        System.out.println("Removed video from " + playlist.getName() + ": " + video.getTitle());
     }
 
     public void clearPlaylist(String playlistName) {
-         VideoPlaylist playlist = getVideoPlaylist(playlistName);
+        VideoPlaylist playlist = getVideoPlaylist(playlistName);
         if (playlist == null) {
             System.out.println("Cannot clear playlist " + playlistName + ": Playlist does not exist");
             return;
@@ -287,21 +291,105 @@ public class VideoPlayer {
     }
 
     public void deletePlaylist(String playlistName) {
-         VideoPlaylist playlist = getVideoPlaylist(playlistName);
+        VideoPlaylist playlist = getVideoPlaylist(playlistName);
         if (playlist == null) {
             System.out.println("Cannot delete playlist " + playlistName + ": Playlist does not exist");
             return;
         }
         videoPlayLists.remove(playlistName);
-         System.out.println("Deleted playlist: " + playlistName);
+        System.out.println("Deleted playlist: " + playlistName);
     }
 
     public void searchVideos(String searchTerm) {
-        System.out.println("searchVideos needs implementation");
+        List<Video> videos = videoLibrary.getVideos();
+        List<Video> outputVideos = videos.stream()
+                .filter(video -> video.getTitle().toLowerCase().contains(searchTerm.toLowerCase()))
+                .collect(Collectors.toList());
+        // List<Video> outputVideos = new ArrayList<>();
+//        for (Video video : videos) {
+//            if (video.getTitle().toLowerCase().contains(searchTerm.toLowerCase())) {
+//                outputVideos.add(video);
+//            }
+//        }
+
+        if (outputVideos.size() > 0) {
+            System.out.println("Here are the results for " + searchTerm + ':');
+            int index = 0;
+            for (Video video : outputVideos) {
+                // String output =video.getTitle()+""+(video.getVideoId())+[video.getTags()];
+                index = index + 1;
+                System.out.println(index + ") " + formatVideoMessage(video));
+            }
+            System.out.println("Would you like to play any of the above? If yes, specify the number of the video.");
+            System.out.println("If your answer is not a valid number, we'll assume it's a no.");
+
+            var scanner = new Scanner(System.in);
+            while (true) {
+                var inputIndex = scanner.nextInt();
+                Video video = outputVideos.get(inputIndex);
+                if (video != null) {
+                    playVideo(video);
+                    return;
+                }
+
+            }
+        } else {
+            System.out.println("No search results for " + searchTerm);
+        }
+
+        //System.out.println(outputVideos);
     }
 
     public void searchVideosWithTag(String videoTag) {
-        System.out.println("searchVideosWithTag needs implementation");
+        List<Video> videos = videoLibrary.getVideos();
+        final String newVideoTag = videoTag.toLowerCase();
+        List<Video> outputVideos = new ArrayList<>();
+        for (Video video : videos) {
+            for (String loopVideoTag : video.getTags()) {
+                //System.out.println(loopVideoTag.toLowerCase() + " " + newVideoTag);
+                if (loopVideoTag.toLowerCase().contains(newVideoTag)) {
+                    outputVideos.add(video);
+                }
+            }
+        }
+
+// List<Video> outputVideos = videos.stream()
+//                .filter(video -> video.getTags().stream().allMatch(loopVideoTag->loopVideoTag.toLowerCase().contains(newVideoTag)))
+//                      //  .filter(car -> car.getEngines().stream().allMatch(engine -> notEmpty(engine.getParts())))
+//                      //filter(videoTag-> tag.toLowerCase().contains(newVideoTag.toLowerCase()))
+//                .collect(Collectors.toList());
+        if (outputVideos.size() > 0) {
+            System.out.println("Here are the results for " + videoTag + ':');
+            int index = 0;
+            for (Video video : outputVideos) {
+                // String output =video.getTitle()+""+(video.getVideoId())+[video.getTags()];
+                index = index + 1;
+                System.out.println(index + ") " + formatVideoMessage(video));
+            }
+            System.out.println("Would you like to play any of the above? If yes, specify the number of the video.");
+            System.out.println("If your answer is not a valid number, we'll assume it's a no.");
+
+            var scanner = new Scanner(System.in);
+
+            int inputIndex = scanner.nextInt();
+            //int newInputIndex = Integer.parseInt(inputIndex);
+            if(inputIndex > 0 && inputIndex < outputVideos.size()){
+                Video video = outputVideos.get(inputIndex);
+            if (video != null) {
+                playVideo(video);
+                return;
+            }
+            else{
+                return;
+            }
+            }
+           
+
+        } else {
+            System.out.println("No search results for " + videoTag);
+        }
+
+        //System.out.println(outputVideos);
     }
 
     public void flagVideo(String videoId) {
